@@ -12,7 +12,23 @@ output: pdf_document
 \noindent The first step is data cleansing :
 
 ```{r}
-training_data=read.csv("Data_User_Modeling_training_Dataset.csv")
+training_data=read.csv("data/Data_User_Modeling_training_Dataset.csv")
 library(ggplot2)
+library(dplyr)
 summary(training_data)
+attach(training_data)
+
+# Number of distinct values in each feture
+a = n_distinct(STG)
+b = n_distinct(SCG)
+c = n_distinct(STR)
+d = n_distinct(LPR)
+e = n_distinct(PEG)
+f = n_distinct(UNS)
+num_distinct = c(a,b,c,d,e,f)
+plot = barplot(num_distinct, names = c("STG", "SCG", "STR", "LPR", "PEG", "UNS"), ylim=c(0,120), xlab="All Features", col=c("green", "purple", "orange", "yellow", "blue", "magenta"))
+text(plot,num_distinct + 4,labels=as.character(num_distinct))
+
+# stat summary of the data
+summary(STG,SCG,STR,LPR,PEG)
 ```
