@@ -1,0 +1,18 @@
+---
+title: "Discovery_dataset"
+author: "Ariel-ac4391"
+date: "11/22/2018"
+output: pdf_document
+---
+
+
+\noindent Here, I recapitulate the main step related in the research paper with the gaphes associated
+
+
+\noindent The first step is data cleansing :
+
+```{r}
+training_data=read.csv("Data_User_Modeling_training_Dataset.csv")
+library(ggplot2)
+summary(training_data)
+```
