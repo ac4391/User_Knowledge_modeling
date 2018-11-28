@@ -6,13 +6,14 @@ output: pdf_document
 ---
 
 
-\noindent Here, I recapitulate the main step related in the research paper with the gaphes associated
+\noindent Here, I recapitulate the main step related in the research paper with the graphs associated
 
 
 \noindent The first step is data cleansing :
 
 ```{r}
 training_data=read.csv("data/Data_User_Modeling_training_Dataset.csv")
+library(gplots)
 library(ggplot2)
 library(dplyr)
 summary(training_data)
@@ -30,5 +31,16 @@ plot = barplot(num_distinct, names = c("STG", "SCG", "STR", "LPR", "PEG", "UNS")
 text(plot,num_distinct + 4,labels=as.character(num_distinct))
 
 # stat summary of the data
-summary(STG,SCG,STR,LPR,PEG)
+summary(STG)
+summary(SCG)
+summary(STR)
+summary(LPR)
+summary(PEG)
+
+# boxplot of all data
+boxplot2(STG,SCG,STR,LPR,PEG, col=c("green", "purple", "orange", "yellow", "blue", "magenta"), ylim=c(0,1.2))
+
+# boxplot of STG divided accross UNS values
+boxplot2(STG~UNS,data=training_data, horizontal = TRUE,
+  	 xlab="User Knowledge", col=c("green", "purple", "orange", "yellow", "blue"))
 ```
