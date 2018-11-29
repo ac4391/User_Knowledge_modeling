@@ -30,17 +30,27 @@ num_distinct = c(a,b,c,d,e,f)
 plot = barplot(num_distinct, names = c("STG", "SCG", "STR", "LPR", "PEG", "UNS"), ylim=c(0,120), xlab="All Features", col=c("green", "purple", "orange", "yellow", "blue", "magenta"))
 text(plot,num_distinct + 4,labels=as.character(num_distinct))
 
-# stat summary of the data
-summary(STG)
-summary(SCG)
-summary(STR)
-summary(LPR)
-summary(PEG)
-
 # boxplot of all data
 boxplot2(STG,SCG,STR,LPR,PEG, col=c("green", "purple", "orange", "yellow", "blue", "magenta"), ylim=c(0,1.2))
 
+# boxplot of SCG divided accross UNS values
+boxplot2(SCG~UNS,data=training_data, horizontal = TRUE,
+  	 xlab="The degree of study time for goal materials", ylab="User Knowledge", col=c("green", "purple", "orange", "yellow", "blue"))
+
 # boxplot of STG divided accross UNS values
 boxplot2(STG~UNS,data=training_data, horizontal = TRUE,
-  	 xlab="User Knowledge", col=c("green", "purple", "orange", "yellow", "blue"))
+  	 xlab="The degree of repetition number of user for goal materials", ylab="User Knowledge", col=c("green", "purple", "orange", "yellow", "blue"))
+
+
+# boxplot of STR divided accross UNS values
+boxplot2(STR~UNS,data=training_data, horizontal = TRUE,
+  	 xlab="The degree of study time for related objects with goal materials", ylab="User Knowledge", col=c("green", "purple", "orange", "yellow", "blue"))
+
+# boxplot of LPR divided accross UNS values
+boxplot2(LPR~UNS,data=training_data, horizontal = TRUE,
+  	 xlab="The exam performance of user for related objects with goal materials", ylab="User Knowledge", col=c("green", "purple", "orange", "yellow", "blue"))
+
+# boxplot of PEG divided accross UNS values
+boxplot2(PEG~UNS,data=training_data, horizontal = TRUE,
+  	 xlab="The exam performance of user for goal materials", ylab="User Knowledge", col=c("green", "purple", "orange", "yellow", "blue"))
 ```
