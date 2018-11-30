@@ -13,9 +13,16 @@ output: pdf_document
 
 ```{r}
 training_data=read.csv("data/Data_User_Modeling_training_Dataset.csv")
+test_data=read.csv("data/Data_User_Modeling_test_Dataset.csv")
 library(gplots)
 library(ggplot2)
+library(partykit)
+library(rpart)
+library(hier.part)
 library(dplyr)
+library(ipred)
+library(randomForest)
+library(C50)
 summary(training_data)
 attach(training_data)
 
@@ -53,4 +60,37 @@ boxplot2(LPR~UNS,data=training_data, horizontal = TRUE,
 # boxplot of PEG divided accross UNS values
 boxplot2(PEG~UNS,data=training_data, horizontal = TRUE,
   	 xlab="The exam performance of user for goal materials", ylab="User Knowledge", col=c("green", "purple", "orange", "yellow", "blue"))
+
+# decision tree
+tree1 <- ctree(UNS ~ .,data = training_data)
+fit1 = predict(tree1, test_data)
+table(fit1, test_data$UNS)
+
+
+#recursive partition tree
+tree2 <- rpart(UNS ~ ., data = training_data)
+fit2 = predict(tree2, test_data, type = "class")
+table(fit2, test_data$UNS)
+
+# J48 package issues
+
+# PART package issues
+#hier.part(training_data$UNS, training_data)
+
+# Bagging tree NOTE: Interesting we did much better than them here, they did something wrong
+tree3 = bagging(UNS ~., data=training_data, coob=TRUE)
+fit3 = predict(tree3, test_data)
+table(fit3, test_data$UNS)
+
+# Random Forest
+tree4 = randomForest(UNS ~., data=training_data)
+fit4 = predict(tree4, test_data)
+table(fit4, test_data$UNS)
+
+# C5.0
+tree5 <- C5.0(UNS ~., data=training_data)
+fit5 = predict(tree5, test_data)
+table(fit5, test_data$UNS)
+
+# Aggregate Data - Add accuracy to each model, compile, add missing algorithms if possible
 ```
