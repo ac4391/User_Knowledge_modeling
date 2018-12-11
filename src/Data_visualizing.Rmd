@@ -26,10 +26,12 @@ library(randomForest)
 library(rpart.plot) # Enhanced tree plots
 library(party) # Alternative decision tree algorithm
 library(partykit) # Convert rpart object to BinaryTree
-library(RWeka) # Weka decision tree J48.
+#library(RWeka) # Weka decision tree J48.
 library(C50) # Original C5.0 implementation.
-summary(training_data)
 attach(training_data)
+```
+```{r}
+summary(training_data)
 ```
 
 ```{r}
@@ -71,13 +73,56 @@ boxplot2(LPR~UNS,data=training_data, horizontal = TRUE,
 boxplot2(PEG~UNS,data=training_data, horizontal = TRUE,
   	 xlab="The exam performance of user for goal materials", ylab="User Knowledge", col=c("green", "purple", "orange", "yellow", "blue"))
 ```
+```{r}
+#Independent variables Scatterplot
+my_cols <- c("green", "purple", "orange", "yellow")
+#pairs(~STG+SCG+STR+LPR+PEG, data=training_data, col = my_cols[training_data$UNS], upper.panel=NULL)
+
+# Correlation panel
+panel.cor <- function(x, y){
+    usr <- par("usr"); on.exit(par(usr))
+    par(usr = c(0, 1, 0, 1))
+    r <- round(cor(x, y), digits=2)
+    txt <- paste0("R = ", r)
+    cex.cor <- 0.8/strwidth(txt)
+    text(0.5, 0.5, txt, cex = cex.cor*r*3)
+}
+# Customize upper panel
+upper.panel<-function(x, y){
+  points(x,y, col = my_cols[training_data$UNS])
+}
+# Create the plots
+pairs(~STG+SCG+STR+LPR+PEG, data=training_data, lower.panel = panel.cor, upper.panel = upper.panel)
+```
 
 ```{r}
 # decision tree
 tree1 <- ctree(UNS ~ .,data = training_data)
-plot(tree1) #Review the design
+#plot(tree1) #Review the design
 fit1 = predict(tree1, test_data)
-table(fit1, test_data$UNS)
+table = table(fit1, test_data$UNS)
+table
+
+
+n = sum(table) # number of instances
+nc = nrow(table) # number of classes
+diag = diag(table) # number of correctly classified instances per class 
+rowsums = apply(table, 1, sum) # number of instances per class
+colsums = apply(table, 2, sum) # number of predictions per class
+p = rowsums / n # distribution of instances over the actual classes
+q = colsums / n # distribution of instances over the predicted classes
+
+
+precision = diag / colsums 
+recall = diag / rowsums 
+f1 = 2 * precision * recall / (precision + recall)
+
+#The accuracy is:
+accuracy = sum(diag) / n
+accuracy
+
+#Here is the performance metrics
+data.frame(precision, recall, f1)
 ```
 
 ```{r}
@@ -86,7 +131,29 @@ tree2 <- rpart(UNS ~ ., data = training_data)
 rpart.plot(tree2)
 rpart.rules(tree2)
 fit2 = predict(tree2, test_data, type = "class")
-table(fit2, test_data$UNS)
+table = table(fit2, test_data$UNS)
+table
+
+
+n = sum(table) # number of instances
+nc = nrow(table) # number of classes
+diag = diag(table) # number of correctly classified instances per class 
+rowsums = apply(table, 1, sum) # number of instances per class
+colsums = apply(table, 2, sum) # number of predictions per class
+p = rowsums / n # distribution of instances over the actual classes
+q = colsums / n # distribution of instances over the predicted classes
+
+
+precision = diag / colsums 
+recall = diag / rowsums 
+f1 = 2 * precision * recall / (precision + recall)
+
+#The accuracy is:
+accuracy = sum(diag) / n
+accuracy
+
+#Here is the performance metrics
+data.frame(precision, recall, f1)
 ```
 
 ```{r}
@@ -102,21 +169,88 @@ table(fit2, test_data$UNS)
 # Bagging tree NOTE: Interesting we did much better than them here, they did something wrong
 tree3 = bagging(UNS ~., data=training_data, coob=TRUE)
 fit3 = predict(tree3, test_data)
-table(fit3, test_data$UNS)
+table = table(fit3, test_data$UNS)
+
+table
+
+
+n = sum(table) # number of instances
+nc = nrow(table) # number of classes
+diag = diag(table) # number of correctly classified instances per class 
+rowsums = apply(table, 1, sum) # number of instances per class
+colsums = apply(table, 2, sum) # number of predictions per class
+p = rowsums / n # distribution of instances over the actual classes
+q = colsums / n # distribution of instances over the predicted classes
+
+
+precision = diag / colsums 
+recall = diag / rowsums 
+f1 = 2 * precision * recall / (precision + recall)
+
+#The accuracy is:
+accuracy = sum(diag) / n
+accuracy
+
+#Here is the performance metrics
+data.frame(precision, recall, f1)
 ```
 
 ```{r}
 # Random Forest
 tree4 = randomForest(UNS ~., data=training_data)
 fit4 = predict(tree4, test_data)
-table(fit4, test_data$UNS)
+table = table(fit4, test_data$UNS)
+table
+
+
+n = sum(table) # number of instances
+nc = nrow(table) # number of classes
+diag = diag(table) # number of correctly classified instances per class 
+rowsums = apply(table, 1, sum) # number of instances per class
+colsums = apply(table, 2, sum) # number of predictions per class
+p = rowsums / n # distribution of instances over the actual classes
+q = colsums / n # distribution of instances over the predicted classes
+
+
+precision = diag / colsums 
+recall = diag / rowsums 
+f1 = 2 * precision * recall / (precision + recall)
+
+#The accuracy is:
+accuracy = sum(diag) / n
+accuracy
+
+#Here is the performance metrics
+data.frame(precision, recall, f1)
 ```
 
 ```{r}
 # C5.0
 tree5 <- C5.0(UNS ~., data=training_data)
 fit5 = predict(tree5, test_data)
-table(fit5, test_data$UNS)
+table = table(fit5, test_data$UNS)
+table
+
+
+n = sum(table) # number of instances
+nc = nrow(table) # number of classes
+diag = diag(table) # number of correctly classified instances per class 
+rowsums = apply(table, 1, sum) # number of instances per class
+colsums = apply(table, 2, sum) # number of predictions per class
+p = rowsums / n # distribution of instances over the actual classes
+q = colsums / n # distribution of instances over the predicted classes
+
+
+precision = diag / colsums 
+recall = diag / rowsums 
+f1 = 2 * precision * recall / (precision + recall)
+
+#The accuracy is:
+accuracy = sum(diag) / n
+accuracy
+
+#Here is the performance metrics
+data.frame(precision, recall, f1)
 
 # Aggregate Data - Add accuracy to each model, compile, add missing algorithms if possible
 ```
