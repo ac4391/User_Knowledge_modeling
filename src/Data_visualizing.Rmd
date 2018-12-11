@@ -260,7 +260,31 @@ table(fit5, test_data$UNS)
 # naive bayes
 bayes <- naiveBayes(UNS ~., data=training_data)
 fit6 = predict(bayes, test_data)
-table(fit6, test_data$UNS)
+table = table(fit6, test_data$UNS)
+
+table
+
+
+n = sum(table) # number of instances
+nc = nrow(table) # number of classes
+diag = diag(table) # number of correctly classified instances per class 
+rowsums = apply(table, 1, sum) # number of instances per class
+colsums = apply(table, 2, sum) # number of predictions per class
+p = rowsums / n # distribution of instances over the actual classes
+q = colsums / n # distribution of instances over the predicted classes
+
+
+precision = diag / colsums 
+recall = diag / rowsums 
+f1 = 2 * precision * recall / (precision + recall)
+
+#The accuracy is:
+accuracy = sum(diag) / n
+accuracy
+
+#Here is the performance metrics
+data.frame(precision, recall, f1)
+table(fit5, test_data$UNS)
 
 # Aggregate Data - Add accuracy to each model, compile, add missing algorithms if possible
 ```
@@ -268,10 +292,60 @@ table(fit6, test_data$UNS)
 ```{r}
 # knn
 nn4 <- kNN(UNS ~ .,training_data,test_data,norm=FALSE,k=4)
-table(test_data[,'UNS'],nn4)
+table = table(test_data[,'UNS'],nn4)
+
+table
+
+
+n = sum(table) # number of instances
+nc = nrow(table) # number of classes
+diag = diag(table) # number of correctly classified instances per class 
+rowsums = apply(table, 1, sum) # number of instances per class
+colsums = apply(table, 2, sum) # number of predictions per class
+p = rowsums / n # distribution of instances over the actual classes
+q = colsums / n # distribution of instances over the predicted classes
+
+
+precision = diag / colsums 
+recall = diag / rowsums 
+f1 = 2 * precision * recall / (precision + recall)
+
+#The accuracy is:
+accuracy = sum(diag) / n
+accuracy
+
+#Here is the performance metrics
+data.frame(precision, recall, f1)
+table(fit5, test_data$UNS)
 ```
 
 ```{r}
 # SVM classification
+model <- svm( UNS~., training_data )
+res <- predict( model, test_data )
+table = table(res, test_data$UNS)
 
+table
+
+
+n = sum(table) # number of instances
+nc = nrow(table) # number of classes
+diag = diag(table) # number of correctly classified instances per class 
+rowsums = apply(table, 1, sum) # number of instances per class
+colsums = apply(table, 2, sum) # number of predictions per class
+p = rowsums / n # distribution of instances over the actual classes
+q = colsums / n # distribution of instances over the predicted classes
+
+
+precision = diag / colsums 
+recall = diag / rowsums 
+f1 = 2 * precision * recall / (precision + recall)
+
+#The accuracy is:
+accuracy = sum(diag) / n
+accuracy
+
+#Here is the performance metrics
+data.frame(precision, recall, f1)
+table(fit5, test_data$UNS)
 ```
