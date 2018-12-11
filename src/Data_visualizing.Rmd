@@ -28,12 +28,9 @@ library(party) # Alternative decision tree algorithm
 library(partykit) # Convert rpart object to BinaryTree
 #library(RWeka) # Weka decision tree J48.
 library(C50) # Original C5.0 implementation.
-<<<<<<< HEAD
-=======
 library(e1071) # naive bayes
 library(DMwR) # KNN
 summary(training_data)
->>>>>>> 083dc877c1d98b48eff305d6a14809d6cd552016
 attach(training_data)
 ```
 ```{r}
@@ -234,7 +231,6 @@ data.frame(precision, recall, f1)
 # C5.0
 tree5 <- C5.0(UNS ~., data=training_data)
 fit5 = predict(tree5, test_data)
-<<<<<<< HEAD
 table = table(fit5, test_data$UNS)
 table
 
@@ -258,7 +254,6 @@ accuracy
 
 #Here is the performance metrics
 data.frame(precision, recall, f1)
-=======
 table(fit5, test_data$UNS)
 ```
 ```{r}
@@ -266,10 +261,10 @@ table(fit5, test_data$UNS)
 bayes <- naiveBayes(UNS ~., data=training_data)
 fit6 = predict(bayes, test_data)
 table(fit6, test_data$UNS)
->>>>>>> 083dc877c1d98b48eff305d6a14809d6cd552016
 
 # Aggregate Data - Add accuracy to each model, compile, add missing algorithms if possible
 ```
+
 ```{r}
 # knn
 nn4 <- kNN(UNS ~ .,training_data,test_data,norm=FALSE,k=4)
