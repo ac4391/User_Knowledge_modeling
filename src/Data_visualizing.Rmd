@@ -26,8 +26,10 @@ library(randomForest)
 library(rpart.plot) # Enhanced tree plots
 library(party) # Alternative decision tree algorithm
 library(partykit) # Convert rpart object to BinaryTree
-library(RWeka) # Weka decision tree J48.
+#library(RWeka) # Weka decision tree J48.
 library(C50) # Original C5.0 implementation.
+library(e1071) # naive bayes
+library(DMwR) # KNN
 summary(training_data)
 attach(training_data)
 ```
@@ -117,10 +119,20 @@ table(fit4, test_data$UNS)
 tree5 <- C5.0(UNS ~., data=training_data)
 fit5 = predict(tree5, test_data)
 table(fit5, test_data$UNS)
+```
+```{r}
+# naive bayes
+bayes <- naiveBayes(UNS ~., data=training_data)
+fit6 = predict(bayes, test_data)
+table(fit6, test_data$UNS)
 
 # Aggregate Data - Add accuracy to each model, compile, add missing algorithms if possible
 ```
-
+```{r}
+# knn
+nn4 <- kNN(UNS ~ .,training_data,test_data,norm=FALSE,k=4)
+table(test_data[,'UNS'],nn4)
+```
 
 ```{r}
 # SVM classification
