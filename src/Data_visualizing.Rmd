@@ -6,10 +6,6 @@ output: pdf_document
 ---
 
 
-\noindent Here, I recapitulate the main step related in the research paper with the graphs associated
-
-
-\noindent The first step is data cleansing :
 
 ```{r}
 training_data=read.csv("data/Data_User_Modeling_training_Dataset.csv")
