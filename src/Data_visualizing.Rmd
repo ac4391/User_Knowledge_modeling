@@ -24,8 +24,9 @@ library(party) # Alternative decision tree algorithm
 library(partykit) # Convert rpart object to BinaryTree
 #library(RWeka) # Weka decision tree J48.
 library(C50) # Original C5.0 implementation.
-library(e1071) # naive bayes
+library(e1071) # naive bayes and SVM
 library(DMwR) # KNN
+library(plotly)
 summary(training_data)
 attach(training_data)
 ```
@@ -92,6 +93,14 @@ upper.panel<-function(x, y){
 }
 # Create the plots
 pairs(~STG+SCG+STR+LPR+PEG, data=training_data, lower.panel = panel.cor, upper.panel = upper.panel)
+```
+
+```{r}
+training_data$UNS <- as.factor(training_data$UNS)
+p <- plot_ly(training_data, x = ~PEG, y = ~LPR, z = ~STG, color = ~UNS, colors = c("purple", "orange", "yellow", "green")) %>%
+add_markers() %>%
+layout(scene = list(xaxis = list(title = 'PEG'), yaxis = list(title = 'LPR'), zaxis = list(title = 'STG')))
+p
 ```
 
 ```{r}
