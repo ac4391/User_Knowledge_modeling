@@ -22,7 +22,7 @@ library(randomForest)
 library(rpart.plot) # Enhanced tree plots
 library(party) # Alternative decision tree algorithm
 library(partykit) # Convert rpart object to BinaryTree
-#library(RWeka) # Weka decision tree J48.
+library(RWeka) # Weka decision tree J48.
 library(C50) # Original C5.0 implementation.
 library(e1071) # naive bayes and SVM
 library(DMwR) # KNN
@@ -165,12 +165,18 @@ data.frame(precision, recall, f1)
 ```
 
 ```{r}
-# J48 package issues
+# J48 decision tree
+j48 <- J48(UNS ~ ., data = training_data)
+j48
+write_to_dot(j48, con=stdout())
 ```
 
 ```{r}
-# PART package issues
-#hier.part(training_data$UNS, training_data)
+# hierarchical partitioning
+levels=c(1,2,3,4)
+names(levels) = c("High", "Middle", "Low", "very_low")
+IND_VARS <- subset(training_data, select = -UNS)
+hier.part(levels[training_data$UNS], IND_VARS, family = "gaussian", gof = "RMSPE", barplot = TRUE)
 ```
 
 ```{r}
