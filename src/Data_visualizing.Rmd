@@ -6,6 +6,7 @@ output: pdf_document
 ---
 
 
+\noindent Dependencies:
 
 ```{r}
 training_data=read.csv("data/Data_User_Modeling_training_Dataset.csv")
@@ -22,7 +23,6 @@ library(randomForest)
 library(rpart.plot) # Enhanced tree plots
 library(party) # Alternative decision tree algorithm
 library(partykit) # Convert rpart object to BinaryTree
-library(RWeka) # Weka decision tree J48.
 library(C50) # Original C5.0 implementation.
 library(e1071) # naive bayes and SVM
 library(DMwR) # KNN
@@ -30,10 +30,11 @@ library(plotly)
 summary(training_data)
 attach(training_data)
 ```
+\noindent Big picture of the dataset
 ```{r}
 summary(training_data)
 ```
-
+\noindent Data Visualization
 ```{r}
 # Number of distinct values in each feture
 a = n_distinct(STG)
@@ -96,82 +97,6 @@ pairs(~STG+SCG+STR+LPR+PEG, data=training_data, lower.panel = panel.cor, upper.p
 ```
 
 ```{r}
-training_data$UNS <- as.factor(training_data$UNS)
-p <- plot_ly(training_data, x = ~PEG, y = ~LPR, z = ~STG, color = ~UNS, colors = c("purple", "orange", "yellow", "green")) %>%
-add_markers() %>%
-layout(scene = list(xaxis = list(title = 'PEG'), yaxis = list(title = 'LPR'), zaxis = list(title = 'STG')))
-p
-```
-
-```{r}
-# decision tree
-tree1 <- ctree(UNS ~ .,data = training_data)
-#plot(tree1) #Review the design
-fit1 = predict(tree1, test_data)
-table = table(fit1, test_data$UNS)
-table
-
-
-n = sum(table) # number of instances
-nc = nrow(table) # number of classes
-diag = diag(table) # number of correctly classified instances per class 
-rowsums = apply(table, 1, sum) # number of instances per class
-colsums = apply(table, 2, sum) # number of predictions per class
-p = rowsums / n # distribution of instances over the actual classes
-q = colsums / n # distribution of instances over the predicted classes
-
-
-precision = diag / colsums 
-recall = diag / rowsums 
-f1 = 2 * precision * recall / (precision + recall)
-
-#The accuracy is:
-accuracy = sum(diag) / n
-accuracy
-
-#Here is the performance metrics
-data.frame(precision, recall, f1)
-```
-
-```{r}
-#recursive partition tree
-tree2 <- rpart(UNS ~ ., data = training_data)
-rpart.plot(tree2)
-rpart.rules(tree2)
-fit2 = predict(tree2, test_data, type = "class")
-table = table(fit2, test_data$UNS)
-table
-
-
-n = sum(table) # number of instances
-nc = nrow(table) # number of classes
-diag = diag(table) # number of correctly classified instances per class 
-rowsums = apply(table, 1, sum) # number of instances per class
-colsums = apply(table, 2, sum) # number of predictions per class
-p = rowsums / n # distribution of instances over the actual classes
-q = colsums / n # distribution of instances over the predicted classes
-
-
-precision = diag / colsums 
-recall = diag / rowsums 
-f1 = 2 * precision * recall / (precision + recall)
-
-#The accuracy is:
-accuracy = sum(diag) / n
-accuracy
-
-#Here is the performance metrics
-data.frame(precision, recall, f1)
-```
-
-```{r}
-# J48 decision tree
-j48 <- J48(UNS ~ ., data = training_data)
-j48
-write_to_dot(j48, con=stdout())
-```
-
-```{r}
 # hierarchical partitioning
 levels=c(1,2,3,4)
 names(levels) = c("High", "Middle", "Low", "very_low")
@@ -179,13 +104,25 @@ IND_VARS <- subset(training_data, select = -UNS)
 hier.part(levels[training_data$UNS], IND_VARS, family = "gaussian", gof = "RMSPE", barplot = TRUE)
 ```
 
-```{r}
-# Bagging tree NOTE: Interesting we did much better than them here, they did something wrong
-tree3 = bagging(UNS ~., data=training_data, coob=TRUE)
-fit3 = predict(tree3, test_data)
-table = table(fit3, test_data$UNS)
 
-table
+```{r}
+training_data$UNS <- as.factor(training_data$UNS)
+p <- plot_ly(training_data, x = ~PEG, y = ~LPR, z = ~STG, color = ~UNS, colors = c("purple", "orange", "yellow", "green")) %>%
+add_markers() %>%
+layout(scene = list(xaxis = list(title = 'PEG'), yaxis = list(title = 'LPR'), zaxis = list(title = 'SCG')))
+p
+```
+
+
+
+\noindent Tree-Based Methods
+
+
+
+```{r}
+# decision tree
+tree1 <- ctree(UNS ~ .,data = training_data)
+fit1 = predict(tree1, test_data)
 
 
 n = sum(table) # number of instances
@@ -207,14 +144,79 @@ accuracy
 
 #Here is the performance metrics
 data.frame(precision, recall, f1)
+table = table(fit1, test_data$UNS)
+
+#Visualization
+#plot(tree1) #Review the design
 ```
+
+```{r}
+#recursive partition tree
+tree2 <- rpart(UNS ~ ., data = training_data)
+fit2 = predict(tree2, test_data, type = "class")
+
+
+n = sum(table) # number of instances
+nc = nrow(table) # number of classes
+diag = diag(table) # number of correctly classified instances per class 
+rowsums = apply(table, 1, sum) # number of instances per class
+colsums = apply(table, 2, sum) # number of predictions per class
+p = rowsums / n # distribution of instances over the actual classes
+q = colsums / n # distribution of instances over the predicted classes
+
+
+precision = diag / colsums 
+recall = diag / rowsums 
+f1 = 2 * precision * recall / (precision + recall)
+
+#The accuracy is:
+accuracy = sum(diag) / n
+accuracy
+
+#Here is the performance metrics
+data.frame(precision, recall, f1)
+table = table(fit2, test_data$UNS)
+
+#Visualization
+rpart.plot(tree2)
+rpart.rules(tree2)
+```
+
+
+
+```{r}
+# Bagging tree NOTE: Interesting we did much better than them here, they did something wrong
+tree3 = bagging(UNS ~., data=training_data, coob=TRUE)
+fit3 = predict(tree3, test_data)
+
+
+n = sum(table) # number of instances
+nc = nrow(table) # number of classes
+diag = diag(table) # number of correctly classified instances per class 
+rowsums = apply(table, 1, sum) # number of instances per class
+colsums = apply(table, 2, sum) # number of predictions per class
+p = rowsums / n # distribution of instances over the actual classes
+q = colsums / n # distribution of instances over the predicted classes
+
+
+precision = diag / colsums 
+recall = diag / rowsums 
+f1 = 2 * precision * recall / (precision + recall)
+
+#The accuracy is:
+accuracy = sum(diag) / n
+accuracy
+
+#Here is the performance metrics
+data.frame(precision, recall, f1)
+table(fit3, test_data$UNS)
+```
+
 
 ```{r}
 # Random Forest
 tree4 = randomForest(UNS ~., data=training_data)
 fit4 = predict(tree4, test_data)
-table = table(fit4, test_data$UNS)
-table
 
 
 n = sum(table) # number of instances
@@ -236,14 +238,13 @@ accuracy
 
 #Here is the performance metrics
 data.frame(precision, recall, f1)
+table(fit4, test_data$UNS)
 ```
 
 ```{r}
 # C5.0
 tree5 <- C5.0(UNS ~., data=training_data)
 fit5 = predict(tree5, test_data)
-table = table(fit5, test_data$UNS)
-table
 
 
 n = sum(table) # number of instances
@@ -267,13 +268,13 @@ accuracy
 data.frame(precision, recall, f1)
 table(fit5, test_data$UNS)
 ```
+
+\noindent Other paper implementation
+
 ```{r}
 # naive bayes
 bayes <- naiveBayes(UNS ~., data=training_data)
 fit6 = predict(bayes, test_data)
-table = table(fit6, test_data$UNS)
-
-table
 
 
 n = sum(table) # number of instances
@@ -295,7 +296,7 @@ accuracy
 
 #Here is the performance metrics
 data.frame(precision, recall, f1)
-table(fit5, test_data$UNS)
+table(fit6, test_data$UNS)
 
 # Aggregate Data - Add accuracy to each model, compile, add missing algorithms if possible
 ```
@@ -303,9 +304,6 @@ table(fit5, test_data$UNS)
 ```{r}
 # knn
 nn4 <- kNN(UNS ~ .,training_data,test_data,norm=FALSE,k=4)
-table = table(test_data[,'UNS'],nn4)
-
-table
 
 
 n = sum(table) # number of instances
@@ -327,16 +325,13 @@ accuracy
 
 #Here is the performance metrics
 data.frame(precision, recall, f1)
-table(fit5, test_data$UNS)
+table(nn4, test_data$UNS)
 ```
 
 ```{r}
 # SVM classification
 model <- svm( UNS~., training_data )
 res <- predict( model, test_data )
-table = table(res, test_data$UNS)
-
-table
 
 
 n = sum(table) # number of instances
@@ -358,5 +353,5 @@ accuracy
 
 #Here is the performance metrics
 data.frame(precision, recall, f1)
-table(fit5, test_data$UNS)
+table(res, test_data$UNS)
 ```
