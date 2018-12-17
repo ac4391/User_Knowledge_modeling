@@ -2,10 +2,12 @@
 title: "Discovery_dataset"
 author: "Ariel-ac4391"
 date: "11/22/2018"
-output: pdf_document
+output:
+  html_document:
+    df_print: paged
 ---
 
-
+\noindent Dependencies:
 
 ```{r}
 training_data=read.csv("data/Data_User_Modeling_training_Dataset.csv")
@@ -22,7 +24,7 @@ library(randomForest)
 library(rpart.plot) # Enhanced tree plots
 library(party) # Alternative decision tree algorithm
 library(partykit) # Convert rpart object to BinaryTree
-library(RWeka) # Weka decision tree J48.
+#library(RWeka) # Weka decision tree J48.
 library(C50) # Original C5.0 implementation.
 library(e1071) # naive bayes and SVM
 library(DMwR) # KNN
@@ -30,9 +32,14 @@ library(plotly)
 summary(training_data)
 attach(training_data)
 ```
+
+\noindent Big Picture of the dataset
+
 ```{r}
 summary(training_data)
 ```
+
+\noindent Data Visualization
 
 ```{r}
 # Number of distinct values in each feture
@@ -96,112 +103,6 @@ pairs(~STG+SCG+STR+LPR+PEG, data=training_data, lower.panel = panel.cor, upper.p
 ```
 
 ```{r}
-training_data$UNS <- as.factor(training_data$UNS)
-p <- plot_ly(training_data, x = ~PEG, y = ~LPR, z = ~STG, color = ~UNS, colors = c("purple", "orange", "yellow", "green")) %>%
-add_markers() %>%
-layout(scene = list(xaxis = list(title = 'PEG'), yaxis = list(title = 'LPR'), zaxis = list(title = 'STG')))
-p
-```
-
-```{r}
-# decision tree
-tree1 <- ctree(UNS ~ .,data = training_data)
-#plot(tree1) #Review the design
-fit1 = predict(tree1, test_data)
-table = table(fit1, test_data$UNS)
-table
-
-
-n = sum(table) # number of instances
-nc = nrow(table) # number of classes
-diag = diag(table) # number of correctly classified instances per class 
-rowsums = apply(table, 1, sum) # number of instances per class
-colsums = apply(table, 2, sum) # number of predictions per class
-p = rowsums / n # distribution of instances over the actual classes
-q = colsums / n # distribution of instances over the predicted classes
-
-
-precision = diag / colsums 
-recall = diag / rowsums 
-f1 = 2 * precision * recall / (precision + recall)
-
-#The accuracy is:
-accuracy = sum(diag) / n
-accuracy
-
-#Here is the performance metrics
-data.frame(precision, recall, f1)
-```
-Our decision tree got the same accuracy (0.9103) and precision/recall/f1 as the Oliveira paper. 
-
-```{r}
-#recursive partition tree
-tree2 <- rpart(UNS ~ ., data = training_data)
-rpart.plot(tree2)
-rpart.rules(tree2)
-fit2 = predict(tree2, test_data, type = "class")
-table = table(fit2, test_data$UNS)
-table
-
-
-n = sum(table) # number of instances
-nc = nrow(table) # number of classes
-diag = diag(table) # number of correctly classified instances per class 
-rowsums = apply(table, 1, sum) # number of instances per class
-colsums = apply(table, 2, sum) # number of predictions per class
-p = rowsums / n # distribution of instances over the actual classes
-q = colsums / n # distribution of instances over the predicted classes
-
-
-precision = diag / colsums 
-recall = diag / rowsums 
-f1 = 2 * precision * recall / (precision + recall)
-
-#The accuracy is:
-accuracy = sum(diag) / n
-accuracy
-
-#Here is the performance metrics
-data.frame(precision, recall, f1)
-```
-Our recursive partitioning/regression tree method got the same accuracy (0.9103) as the Oliveira paper. This methods performs just as well as the decision tree method. 
-
-
-```{r}
-# J48 decision tree
-j48 <- J48(UNS ~ ., data = training_data)
-j48
-write_to_dot(j48, con=stdout())
-
-fit_j48 = predict(j48, test_data, type = "class")
-table = table(fit_j48, test_data$UNS)
-table
-
-n = sum(table) # number of instances
-nc = nrow(table) # number of classes
-diag = diag(table) # number of correctly classified instances per class 
-rowsums = apply(table, 1, sum) # number of instances per class
-colsums = apply(table, 2, sum) # number of predictions per class
-p = rowsums / n # distribution of instances over the actual classes
-q = colsums / n # distribution of instances over the predicted classes
-
-
-precision = diag / colsums 
-recall = diag / rowsums 
-f1 = 2 * precision * recall / (precision + recall)
-
-#The accuracy is:
-accuracy = sum(diag) / n
-accuracy
-
-#Here is the performance metrics
-data.frame(precision, recall, f1)
-```
-J48 trees (the C4.5 algorithm) had the same accuracy (0.9103) and precision/recall/f1 as in the Oliveria paper; it performed just as well as the decision tree and recursive partitioning/regression tree methods. 
-
-A visualization of the tree resulting from the ".dot" output from the J48 method shows that PEG (performance on exams) is the most important predictor of user knowledge class (PEG is the only predictor in the top 2 plies of the tree) and that LPR (learning percentage) is the 2nd most important predictor. In fact, according to this classifier, "High" knowledge class is differentiated by PEG > 0.67 or a combo of 0.35 < PEG <= 0.67 and LPR > 0.83. 
-
-```{r}
 # hierarchical partitioning
 levels=c(1,2,3,4)
 names(levels) = c("High", "Middle", "Low", "very_low")
@@ -212,13 +113,20 @@ The Kahraman paper states that based on its weight-tuning algorithm, the LPR and
 Hierarchical paritioning helps determine the independent contribution of each feature with regards to the response variable, as separate from the feature's joint contribution that results from its correlation with other features. Thus, this hierarchical partitioning shows that LPR (learning percentage) and PEG (user performance in exams) have the highest independent contributions to the UNS score out of all the features and thus corroborates the conclusion of the Kahraman paper.The order of importance of features, from most important to least (PEG, LPR, SCG, STG, STR) also matches with the "feature importance matrix" that was extracted in the Oliveira paper. 
 
 ```{r}
-# Bagging tree NOTE: Interesting we did much better than them here, they did something wrong
-tree3 = bagging(UNS ~., data=training_data, coob=TRUE)
-fit3 = predict(tree3, test_data)
-table = table(fit3, test_data$UNS)
+training_data$UNS <- as.factor(training_data$UNS)
+p <- plot_ly(training_data, x = ~PEG, y = ~LPR, z = ~STG, color = ~UNS, colors = c("purple", "orange", "yellow", "green")) %>%
+add_markers() %>%
+layout(scene = list(xaxis = list(title = 'PEG'), yaxis = list(title = 'LPR'), zaxis = list(title = 'STG')))
+p
+```
 
-table
+\noindent Tree Based Methods
 
+```{r}
+# decision tree
+tree1 <- ctree(UNS ~ .,data = training_data)
+fit1 = predict(tree1, test_data)
+table = table(fit1, test_data$UNS)
 
 n = sum(table) # number of instances
 nc = nrow(table) # number of classes
@@ -229,8 +137,8 @@ p = rowsums / n # distribution of instances over the actual classes
 q = colsums / n # distribution of instances over the predicted classes
 
 
-precision = diag / colsums 
-recall = diag / rowsums 
+precision = diag / rowsums 
+recall = diag / colsums 
 f1 = 2 * precision * recall / (precision + recall)
 
 #The accuracy is:
@@ -239,6 +147,109 @@ accuracy
 
 #Here is the performance metrics
 data.frame(precision, recall, f1)
+table(fit1, test_data$UNS)
+
+#Visualization
+#plot(tree1) #Review the design
+
+```
+Our decision tree got the same accuracy (0.9103) and precision/recall/f1 as the Oliveira paper. 
+
+```{r}
+#recursive partition tree
+tree2 <- rpart(UNS ~ ., data = training_data)
+fit2 = predict(tree2, test_data, type = "class")
+table = table(fit2, test_data$UNS)
+
+n = sum(table) # number of instances
+nc = nrow(table) # number of classes
+diag = diag(table) # number of correctly classified instances per class 
+rowsums = apply(table, 1, sum) # number of instances per class
+colsums = apply(table, 2, sum) # number of predictions per class
+p = rowsums / n # distribution of instances over the actual classes
+q = colsums / n # distribution of instances over the predicted classes
+
+
+precision = diag / rowsums 
+recall = diag / colsums 
+f1 = 2 * precision * recall / (precision + recall)
+
+#The accuracy is:
+accuracy = sum(diag) / n
+accuracy
+
+#Here is the performance metrics
+data.frame(precision, recall, f1)
+table(fit2, test_data$UNS)
+
+#Visualization
+rpart.plot(tree2)
+rpart.rules(tree2)
+```
+Our recursive partitioning/regression tree method got the same accuracy (0.9103) as the Oliveira paper. This methods performs just as well as the decision tree method. 
+
+
+```{r}
+# J48 decision tree
+#j48 <- J48(UNS ~ ., data = training_data)
+#j48
+#write_to_dot(j48, con=stdout())
+
+#fit_j48 = predict(j48, test_data, type = "class")
+#table = table(fit_j48, test_data$UNS)
+#table
+
+#n = sum(table) # number of instances
+#nc = nrow(table) # number of classes
+#diag = diag(table) # number of correctly classified instances per class 
+#rowsums = apply(table, 1, sum) # number of instances per class
+#colsums = apply(table, 2, sum) # number of predictions per class
+#p = rowsums / n # distribution of instances over the actual classes
+#q = colsums / n # distribution of instances over the predicted classes
+
+
+#precision = diag / colsums 
+#recall = diag / rowsums 
+#f1 = 2 * precision * recall / (precision + recall)
+
+#The accuracy is:
+#accuracy = sum(diag) / n
+#accuracy
+
+#Here is the performance metrics
+#data.frame(precision, recall, f1)
+```
+J48 trees (the C4.5 algorithm) had the same accuracy (0.9103) and precision/recall/f1 as in the Oliveria paper; it performed just as well as the decision tree and recursive partitioning/regression tree methods. 
+
+A visualization of the tree resulting from the ".dot" output from the J48 method shows that PEG (performance on exams) is the most important predictor of user knowledge class (PEG is the only predictor in the top 2 plies of the tree) and that LPR (learning percentage) is the 2nd most important predictor. In fact, according to this classifier, "High" knowledge class is differentiated by PEG > 0.67 or a combo of 0.35 < PEG <= 0.67 and LPR > 0.83. 
+
+
+```{r}
+# Bagging tree NOTE: Interesting we did much better than them here, they did something wrong
+tree3 = bagging(UNS ~., data=training_data, coob=TRUE)
+fit3 = predict(tree3, test_data)
+table = table(fit3, test_data$UNS)
+
+n = sum(table) # number of instances
+nc = nrow(table) # number of classes
+diag = diag(table) # number of correctly classified instances per class 
+rowsums = apply(table, 1, sum) # number of instances per class
+colsums = apply(table, 2, sum) # number of predictions per class
+p = rowsums / n # distribution of instances over the actual classes
+q = colsums / n # distribution of instances over the predicted classes
+
+
+precision = diag / rowsums 
+recall = diag / colsums 
+f1 = 2 * precision * recall / (precision + recall)
+
+#The accuracy is:
+accuracy = sum(diag) / n
+accuracy
+
+#Here is the performance metrics
+data.frame(precision, recall, f1)
+table(fit3, test_data$UNS)
 ```
 We had an accuracy of 90.3% in bagging, which was much higher than the Oliveira paper's accuracy of 50.3%. 
 This is most likely because the Oliveira group made a mistake when implementing bagging. Theoretically, however, we could also consider the problem of class imbalance - the tendency of methods such as random forest and bagging to classify most observations into the majority class(es). The Oliveira group has precision and recall = 0.00 for "High" and "Very Low" knowledge classes (and precision and recall in 80-90% for Middle and Low), and High and Very Low are the 2 classes with the lowest numbers of observations (High has 63 and Very Low has 24, as compared to 88 for Middle and 83 for Low). Thus, it is theoretically possible that due to a class imbalance, the Oliveira got a low accuracy of 50.3% (but it is most likely due to a mistake in their implementation since most other tree-based methods achieved high accuracy on this data).
@@ -248,8 +259,6 @@ This is most likely because the Oliveira group made a mistake when implementing 
 tree4 = randomForest(UNS ~., data=training_data)
 fit4 = predict(tree4, test_data)
 table = table(fit4, test_data$UNS)
-table
-tree4
 
 
 n = sum(table) # number of instances
@@ -261,8 +270,8 @@ p = rowsums / n # distribution of instances over the actual classes
 q = colsums / n # distribution of instances over the predicted classes
 
 
-precision = diag / colsums 
-recall = diag / rowsums 
+precision = diag / rowsums 
+recall = diag / colsums 
 f1 = 2 * precision * recall / (precision + recall)
 
 #The accuracy is:
@@ -271,6 +280,7 @@ accuracy
 
 #Here is the performance metrics
 data.frame(precision, recall, f1)
+table(fit4, test_data$UNS)
 ```
 Our random forests method achieved accuracy of 94.4%, slightly lower than the accuracy in the Oliveira paper (95.2%), with 500 trees and 2 variables tried at each split (as in the Oliveira paper). Interestinly, our OOB (out of bag) estimate of error rate was 6.59%, slightly lower than the OOB error rate of 6.98% in the Oliveira paper. (The OOB error is an effective estimation of the test error because it is an error estimated based on sampling of approximately 1/3 of the training data which is not used for training.)
 
@@ -279,7 +289,6 @@ Our random forests method achieved accuracy of 94.4%, slightly lower than the ac
 tree5 <- C5.0(UNS ~., data=training_data)
 fit5 = predict(tree5, test_data)
 table = table(fit5, test_data$UNS)
-table
 
 
 n = sum(table) # number of instances
@@ -291,8 +300,8 @@ p = rowsums / n # distribution of instances over the actual classes
 q = colsums / n # distribution of instances over the predicted classes
 
 
-precision = diag / colsums 
-recall = diag / rowsums 
+precision = diag / rowsums 
+recall = diag / colsums 
 f1 = 2 * precision * recall / (precision + recall)
 
 #The accuracy is:
@@ -311,8 +320,6 @@ bayes <- naiveBayes(UNS ~., data=training_data)
 fit6 = predict(bayes, test_data)
 table = table(fit6, test_data$UNS)
 
-table
-
 
 n = sum(table) # number of instances
 nc = nrow(table) # number of classes
@@ -323,8 +330,8 @@ p = rowsums / n # distribution of instances over the actual classes
 q = colsums / n # distribution of instances over the predicted classes
 
 
-precision = diag / colsums 
-recall = diag / rowsums 
+precision = diag / rowsums 
+recall = diag / colsums 
 f1 = 2 * precision * recall / (precision + recall)
 
 #The accuracy is:
@@ -333,7 +340,7 @@ accuracy
 
 #Here is the performance metrics
 data.frame(precision, recall, f1)
-table(fit5, test_data$UNS)
+table(fit6, test_data$UNS)
 
 # Aggregate Data - Add accuracy to each model, compile, add missing algorithms if possible
 ```
@@ -343,10 +350,7 @@ Our naive Bayes achieved a higher classfication accuracy (84.1%) than the one in
 ```{r}
 # knn
 nn4 <- kNN(UNS ~ .,training_data,test_data,norm=FALSE,k=4)
-table = table(test_data[,'UNS'],nn4)
-
-table
-
+table = table(nn4, test_data$UNS)
 
 n = sum(table) # number of instances
 nc = nrow(table) # number of classes
@@ -357,8 +361,8 @@ p = rowsums / n # distribution of instances over the actual classes
 q = colsums / n # distribution of instances over the predicted classes
 
 
-precision = diag / colsums 
-recall = diag / rowsums 
+precision = diag / rowsums 
+recall = diag / colsums 
 f1 = 2 * precision * recall / (precision + recall)
 
 #The accuracy is:
@@ -367,7 +371,7 @@ accuracy
 
 #Here is the performance metrics
 data.frame(precision, recall, f1)
-table(fit5, test_data$UNS)
+table(nn4, test_data$UNS)
 ```
 The Kahraman paper's kNN classifier achieved an average % accuracy of ~85.5% using Euclidean distance metric and k-values of 1, 3, 5, and 7; our classifier, using k=4 and Euclidean distance metric, has an average accuracy (f1) of ~84%. Perhaps, this is because the Kahraman paper's accuracy was decreased by use of k=1 and k=7, which results in majority vote over too few, and too many neighbors, respectively. Perhaps, k=4 is more optimal for this dataset. 
 
@@ -379,8 +383,6 @@ table = table(res, test_data$UNS)
 summary(model)
 model
 
-table
-
 
 n = sum(table) # number of instances
 nc = nrow(table) # number of classes
@@ -391,8 +393,8 @@ p = rowsums / n # distribution of instances over the actual classes
 q = colsums / n # distribution of instances over the predicted classes
 
 
-precision = diag / colsums 
-recall = diag / rowsums 
+precision = diag / rowsums 
+recall = diag / colsums 
 f1 = 2 * precision * recall / (precision + recall)
 
 #The accuracy is:
@@ -401,7 +403,7 @@ accuracy
 
 #Here is the performance metrics
 data.frame(precision, recall, f1)
-table(fit5, test_data$UNS)
+table(res, test_data$UNS)
 ```
 Our SVM classifier achieved accuracy of 89.7%. 
 
