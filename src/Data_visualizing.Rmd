@@ -7,10 +7,6 @@ output:
     df_print: paged
 ---
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 401d7fbcc506ac526c839672bba23bbf2495a461
 \noindent Dependencies:
 
 ```{r}
@@ -28,10 +24,7 @@ library(randomForest)
 library(rpart.plot) # Enhanced tree plots
 library(party) # Alternative decision tree algorithm
 library(partykit) # Convert rpart object to BinaryTree
-<<<<<<< HEAD
-=======
 #library(RWeka) # Weka decision tree J48.
->>>>>>> 401d7fbcc506ac526c839672bba23bbf2495a461
 library(C50) # Original C5.0 implementation.
 library(e1071) # naive bayes and SVM
 library(DMwR) # KNN
@@ -39,13 +32,6 @@ library(plotly)
 summary(training_data)
 attach(training_data)
 ```
-<<<<<<< HEAD
-\noindent Big picture of the dataset
-```{r}
-summary(training_data)
-```
-\noindent Data Visualization
-=======
 
 \noindent Big Picture of the dataset
 
@@ -55,7 +41,6 @@ summary(training_data)
 
 \noindent Data Visualization
 
->>>>>>> 401d7fbcc506ac526c839672bba23bbf2495a461
 ```{r}
 # Number of distinct values in each feture
 a = n_distinct(STG)
@@ -124,40 +109,24 @@ names(levels) = c("High", "Middle", "Low", "very_low")
 IND_VARS <- subset(training_data, select = -UNS)
 hier.part(levels[training_data$UNS], IND_VARS, family = "gaussian", gof = "RMSPE", barplot = TRUE)
 ```
-<<<<<<< HEAD
-
-=======
 The Kahraman paper states that based on its weight-tuning algorithm, the LPR and PEG features of students have larger weight values than the other features, which illustrates that these features are more important for classifying the knowledge class of users than the other 3 features. 
 Hierarchical paritioning helps determine the independent contribution of each feature with regards to the response variable, as separate from the feature's joint contribution that results from its correlation with other features. Thus, this hierarchical partitioning shows that LPR (learning percentage) and PEG (user performance in exams) have the highest independent contributions to the UNS score out of all the features and thus corroborates the conclusion of the Kahraman paper.The order of importance of features, from most important to least (PEG, LPR, SCG, STG, STR) also matches with the "feature importance matrix" that was extracted in the Oliveira paper. 
->>>>>>> 401d7fbcc506ac526c839672bba23bbf2495a461
 
 ```{r}
 training_data$UNS <- as.factor(training_data$UNS)
 p <- plot_ly(training_data, x = ~PEG, y = ~LPR, z = ~STG, color = ~UNS, colors = c("purple", "orange", "yellow", "green")) %>%
 add_markers() %>%
-layout(scene = list(xaxis = list(title = 'PEG'), yaxis = list(title = 'LPR'), zaxis = list(title = 'SCG')))
+layout(scene = list(xaxis = list(title = 'PEG'), yaxis = list(title = 'LPR'), zaxis = list(title = 'STG')))
 p
 ```
 
-<<<<<<< HEAD
-
-
-\noindent Tree-Based Methods
-
-
-=======
 \noindent Tree Based Methods
->>>>>>> 401d7fbcc506ac526c839672bba23bbf2495a461
 
 ```{r}
 # decision tree
-tree1 <- ctree(UNS ~ .,data = training_data)
+tree1 <- ctree(UNS ~ STG+SCG+STR+LPR+PEG ,data = training_data)
 fit1 = predict(tree1, test_data)
-<<<<<<< HEAD
-
-=======
 table = table(fit1, test_data$UNS)
->>>>>>> 401d7fbcc506ac526c839672bba23bbf2495a461
 
 n = sum(table) # number of instances
 nc = nrow(table) # number of classes
@@ -178,30 +147,26 @@ accuracy
 
 #Here is the performance metrics
 data.frame(precision, recall, f1)
-<<<<<<< HEAD
-table = table(fit1, test_data$UNS)
-
-#Visualization
-#plot(tree1) #Review the design
-=======
 table(fit1, test_data$UNS)
 
+test_data$ctree = fit1
+
+p <- plot_ly(test_data, x = ~PEG, y = ~LPR, z = ~SCG, color = ~ctree, colors = c("purple", "orange", "yellow", "green")) %>%
+add_markers() %>%
+layout(scene = list(xaxis = list(title = 'PEG'), yaxis = list(title = 'LPR'), zaxis = list(title = 'SCG')))
+p
+
 #Visualization
 #plot(tree1) #Review the design
 
->>>>>>> 401d7fbcc506ac526c839672bba23bbf2495a461
 ```
 Our decision tree got the same accuracy (0.9103) and precision/recall/f1 as the Oliveira paper. 
 
 ```{r}
 #recursive partition tree
-tree2 <- rpart(UNS ~ ., data = training_data)
+tree2 <- rpart(UNS ~ STG+SCG+STR+LPR+PEG, data = training_data)
 fit2 = predict(tree2, test_data, type = "class")
-<<<<<<< HEAD
-=======
 table = table(fit2, test_data$UNS)
->>>>>>> 401d7fbcc506ac526c839672bba23bbf2495a461
-
 
 n = sum(table) # number of instances
 nc = nrow(table) # number of classes
@@ -222,16 +187,14 @@ accuracy
 
 #Here is the performance metrics
 data.frame(precision, recall, f1)
-<<<<<<< HEAD
-table = table(fit2, test_data$UNS)
-
-#Visualization
-rpart.plot(tree2)
-rpart.rules(tree2)
-```
-
-=======
 table(fit2, test_data$UNS)
+
+test_data$rpart = fit2
+
+p <- plot_ly(test_data, x = ~PEG, y = ~LPR, z = ~SCG, color = ~rpart, colors = c("purple", "orange", "yellow", "green")) %>%
+add_markers() %>%
+layout(scene = list(xaxis = list(title = 'PEG'), yaxis = list(title = 'LPR'), zaxis = list(title = 'SCG')))
+p
 
 #Visualization
 rpart.plot(tree2)
@@ -273,18 +236,13 @@ Our recursive partitioning/regression tree method got the same accuracy (0.9103)
 J48 trees (the C4.5 algorithm) had the same accuracy (0.9103) and precision/recall/f1 as in the Oliveria paper; it performed just as well as the decision tree and recursive partitioning/regression tree methods. 
 
 A visualization of the tree resulting from the ".dot" output from the J48 method shows that PEG (performance on exams) is the most important predictor of user knowledge class (PEG is the only predictor in the top 2 plies of the tree) and that LPR (learning percentage) is the 2nd most important predictor. In fact, according to this classifier, "High" knowledge class is differentiated by PEG > 0.67 or a combo of 0.35 < PEG <= 0.67 and LPR > 0.83. 
->>>>>>> 401d7fbcc506ac526c839672bba23bbf2495a461
 
 
 ```{r}
 # Bagging tree NOTE: Interesting we did much better than them here, they did something wrong
-tree3 = bagging(UNS ~., data=training_data, coob=TRUE)
+tree3 = bagging(UNS ~STG+SCG+STR+LPR+PEG, data = training_data, coob=TRUE)
 fit3 = predict(tree3, test_data)
-<<<<<<< HEAD
-
-=======
 table = table(fit3, test_data$UNS)
->>>>>>> 401d7fbcc506ac526c839672bba23bbf2495a461
 
 n = sum(table) # number of instances
 nc = nrow(table) # number of classes
@@ -302,6 +260,13 @@ f1 = 2 * precision * recall / (precision + recall)
 #The accuracy is:
 accuracy = sum(diag) / n
 accuracy
+
+test_data$bagging = fit3
+
+p <- plot_ly(test_data, x = ~PEG, y = ~LPR, z = ~SCG, color = ~bagging, colors = c("purple", "orange", "yellow", "green")) %>%
+add_markers() %>%
+layout(scene = list(xaxis = list(title = 'PEG'), yaxis = list(title = 'LPR'), zaxis = list(title = 'SCG')))
+p
 
 #Here is the performance metrics
 data.frame(precision, recall, f1)
@@ -310,15 +275,11 @@ table(fit3, test_data$UNS)
 We had an accuracy of 90.3% in bagging, which was much higher than the Oliveira paper's accuracy of 50.3%. 
 This is most likely because the Oliveira group made a mistake when implementing bagging. Theoretically, however, we could also consider the problem of class imbalance - the tendency of methods such as random forest and bagging to classify most observations into the majority class(es). The Oliveira group has precision and recall = 0.00 for "High" and "Very Low" knowledge classes (and precision and recall in 80-90% for Middle and Low), and High and Very Low are the 2 classes with the lowest numbers of observations (High has 63 and Very Low has 24, as compared to 88 for Middle and 83 for Low). Thus, it is theoretically possible that due to a class imbalance, the Oliveira got a low accuracy of 50.3% (but it is most likely due to a mistake in their implementation since most other tree-based methods achieved high accuracy on this data).
 
-
 ```{r}
 # Random Forest
-tree4 = randomForest(UNS ~., data=training_data)
+tree4 = randomForest(UNS ~STG+SCG+STR+LPR+PEG, data=training_data)
 fit4 = predict(tree4, test_data)
-<<<<<<< HEAD
-=======
 table = table(fit4, test_data$UNS)
->>>>>>> 401d7fbcc506ac526c839672bba23bbf2495a461
 
 
 n = sum(table) # number of instances
@@ -337,6 +298,13 @@ f1 = 2 * precision * recall / (precision + recall)
 #The accuracy is:
 accuracy = sum(diag) / n
 accuracy
+
+test_data$randfor = fit4
+
+p <- plot_ly(test_data, x = ~PEG, y = ~LPR, z = ~SCG, color = ~randfor, colors = c("purple", "orange", "yellow", "green")) %>%
+add_markers() %>%
+layout(scene = list(xaxis = list(title = 'PEG'), yaxis = list(title = 'LPR'), zaxis = list(title = 'SCG')))
+p
 
 #Here is the performance metrics
 data.frame(precision, recall, f1)
@@ -346,12 +314,9 @@ Our random forests method achieved accuracy of 94.4%, slightly lower than the ac
 
 ```{r}
 # C5.0
-tree5 <- C5.0(UNS ~., data=training_data)
+tree5 <- C5.0(UNS ~STG+SCG+STR+LPR+PEG, data=training_data)
 fit5 = predict(tree5, test_data)
-<<<<<<< HEAD
-=======
 table = table(fit5, test_data$UNS)
->>>>>>> 401d7fbcc506ac526c839672bba23bbf2495a461
 
 
 n = sum(table) # number of instances
@@ -371,25 +336,28 @@ f1 = 2 * precision * recall / (precision + recall)
 accuracy = sum(diag) / n
 accuracy
 
+test_data$C5.0 = fit5
+
+p <- plot_ly(test_data, x = ~PEG, y = ~LPR, z = ~SCG, color = ~C5.0, colors = c("purple", "orange", "yellow", "green")) %>%
+add_markers() %>%
+layout(scene = list(xaxis = list(title = 'PEG'), yaxis = list(title = 'LPR'), zaxis = list(title = 'SCG')))
+p
+
 #Here is the performance metrics
 data.frame(precision, recall, f1)
 table(fit5, test_data$UNS)
 ```
-<<<<<<< HEAD
-
-\noindent Other paper implementation
-=======
 The accuracy of our C5 method was 90.3%, slightly lower than the Oliveira paper's accuracy of 91.7%.
->>>>>>> 401d7fbcc506ac526c839672bba23bbf2495a461
+
+
+\noindent Other implementation
+
 
 ```{r}
 # naive bayes
-bayes <- naiveBayes(UNS ~., data=training_data)
+bayes <- naiveBayes(UNS ~STG+SCG+STR+LPR+PEG, data=training_data)
 fit6 = predict(bayes, test_data)
-<<<<<<< HEAD
-=======
 table = table(fit6, test_data$UNS)
->>>>>>> 401d7fbcc506ac526c839672bba23bbf2495a461
 
 
 n = sum(table) # number of instances
@@ -413,6 +381,13 @@ accuracy
 data.frame(precision, recall, f1)
 table(fit6, test_data$UNS)
 
+test_data$bayes = fit6
+
+p <- plot_ly(test_data, x = ~PEG, y = ~LPR, z = ~SCG, color = ~bayes, colors = c("purple", "orange", "yellow", "green")) %>%
+add_markers() %>%
+layout(scene = list(xaxis = list(title = 'PEG'), yaxis = list(title = 'LPR'), zaxis = list(title = 'SCG')))
+p
+
 # Aggregate Data - Add accuracy to each model, compile, add missing algorithms if possible
 ```
 Our naive Bayes achieved a higher classfication accuracy (84.1%) than the one in the Kahraman paper, which achieved accuracy around 73.8%. Perhaps, the increased accuracy could result from the fact that in the Kahraman paper, the training data was made categorical, whereas in our implementation, we left the data in its numerical form. (When the R naive bayes function receives numerical data, it simply makes the assumption that the numerical variables are normally distributed. Interestingly, even though a few of our boxplots of the features show skewness of some features for particular knowledge classes, we still achieved higher accuracy.)
@@ -420,12 +395,8 @@ Our naive Bayes achieved a higher classfication accuracy (84.1%) than the one in
 
 ```{r}
 # knn
-nn4 <- kNN(UNS ~ .,training_data,test_data,norm=FALSE,k=4)
-<<<<<<< HEAD
-
-=======
+nn4 <- kNN(UNS ~ STG+SCG+STR+LPR+PEG,training_data,subset(test_data, select=c('STG','SCG','STR','LPR','PEG','UNS')),norm=FALSE,k=4)
 table = table(nn4, test_data$UNS)
->>>>>>> 401d7fbcc506ac526c839672bba23bbf2495a461
 
 n = sum(table) # number of instances
 nc = nrow(table) # number of classes
@@ -447,15 +418,19 @@ accuracy
 #Here is the performance metrics
 data.frame(precision, recall, f1)
 table(nn4, test_data$UNS)
+
+test_data$nn4 = nn4
+p <- plot_ly(test_data, x = ~PEG, y = ~LPR, z = ~SCG, color = ~nn4, colors = c("purple", "orange", "yellow", "green")) %>%
+add_markers() %>%
+layout(scene = list(xaxis = list(title = 'PEG'), yaxis = list(title = 'LPR'), zaxis = list(title = 'SCG')))
+p
 ```
 The Kahraman paper's kNN classifier achieved an average % accuracy of ~85.5% using Euclidean distance metric and k-values of 1, 3, 5, and 7; our classifier, using k=4 and Euclidean distance metric, has an average accuracy (f1) of ~84%. Perhaps, this is because the Kahraman paper's accuracy was decreased by use of k=1 and k=7, which results in majority vote over too few, and too many neighbors, respectively. Perhaps, k=4 is more optimal for this dataset. 
 
 ```{r}
 # SVM classification
-model <- svm( UNS~., training_data )
+model <- svm( UNS~STG+SCG+STR+LPR+PEG, training_data )
 res <- predict( model, test_data )
-<<<<<<< HEAD
-=======
 table = table(res, test_data$UNS)
 summary(model)
 model
@@ -468,7 +443,6 @@ rowsums = apply(table, 1, sum) # number of instances per class
 colsums = apply(table, 2, sum) # number of predictions per class
 p = rowsums / n # distribution of instances over the actual classes
 q = colsums / n # distribution of instances over the predicted classes
->>>>>>> 401d7fbcc506ac526c839672bba23bbf2495a461
 
 
 precision = diag / rowsums 
@@ -482,7 +456,15 @@ accuracy
 #Here is the performance metrics
 data.frame(precision, recall, f1)
 table(res, test_data$UNS)
+
+test_data$svm = res
+
+p <- plot_ly(test_data, x = ~PEG, y = ~LPR, z = ~SCG, color = ~svm, colors = c("purple", "orange", "yellow", "green")) %>%
+add_markers() %>%
+layout(scene = list(xaxis = list(title = 'PEG'), yaxis = list(title = 'LPR'), zaxis = list(title = 'SCG')))
+p
 ```
+
 Our SVM classifier achieved accuracy of 89.7%. 
 
 
@@ -492,31 +474,128 @@ Random forest and decision tree methods are also preferable to kNN in the sense 
 
 Naive Bayes is considered to be faster than kNN at predction, but its results can be distorted by correlated features because it relies on marginal distributions of the features to do classification. In the case of the user knowledge data, there is likely correlation between different features like PEG and LPR as these are features of students, and this may partially resulted in lower accuracy using naive bayes.In addition, our R implementation of naive bayes had to assume that the features were normally distributed, which some of them were not according to our boxplots. 
 
-
 ```{r}
-#tree4 is random forest model
-#tree1 is decision tree model
-#tree2 is regression tree model
+#Voting classifier
+test_data$votclass = 'very low'
 
-ind_vars <- subset(test_data, select = -UNS)
+for (i in 1:145){
+  Low = 0
+  very_low = 0
+  Middle = 0
+  high = 0
+  if (test_data$ctree[i]=='very_low'){
+    very_low=very_low+1
+  }
+  if (test_data$ctree[i]=='Low'){
+    Low=Low+1
+  }
+  if (test_data$ctree[i]=='Middle'){
+    Middle=Middle+1
+  }
+  if (test_data$ctree[i]=='high'){
+    high=high+1
+  }
+  if (test_data$rpart[i]=='very_low'){
+    very_low=very_low+1
+  }
+  if (test_data$rpart[i]=='Low'){
+    Low=Low+1
+  }
+  if (test_data$rpart[i]=='Middle'){
+    Middle=Middle+1
+  }
+  if (test_data$rpart[i]=='high'){
+    high=high+1
+  }
+  if (test_data$bagging[i]=='very_low'){
+    very_low=very_low+1
+  }
+  if (test_data$bagging[i]=='Low'){
+    Low=Low+1
+  }
+  if (test_data$bagging[i]=='Middle'){
+    Middle=Middle+1
+  }
+  if (test_data$bagging[i]=='high'){
+    high=high+1
+  }
+  if (test_data$randfor[i]=='very_low'){
+    very_low=very_low+1
+  }
+  if (test_data$randfor[i]=='Low'){
+    Low=Low+1
+  }
+  if (test_data$randfor[i]=='Middle'){
+    Middle=Middle+1
+  }
+  if (test_data$randfor[i]=='high'){
+    high=high+1
+  }
+  if (test_data$C5.0[i]=='very_low'){
+    very_low=very_low+1
+  }
+  if (test_data$C5.0[i]=='Low'){
+    Low=Low+1
+  }
+  if (test_data$C5.0[i]=='Middle'){
+    Middle=Middle+1
+  }
+  if (test_data$C5.0[i]=='high'){
+    high=high+1
+  }
+  if (test_data$bayes[i]=='very_low'){
+    very_low=very_low+1
+  }
+  if (test_data$bayes[i]=='Low'){
+    Low=Low+1
+  }
+  if (test_data$bayes[i]=='Middle'){
+    Middle=Middle+1
+  }
+  if (test_data$bayes[i]=='high'){
+    high=high+1
+  }
+  if (test_data$nn4[i]=='very_low'){
+    very_low=very_low+1
+  }
+  if (test_data$nn4[i]=='Low'){
+    Low=Low+1
+  }
+  if (test_data$nn4[i]=='Middle'){
+    Middle=Middle+1
+  }
+  if (test_data$nn4[i]=='high'){
+    high=high+1
+  }
+  if (test_data$svm[i]=='very_low'){
+    very_low=very_low+1
+  }
+  if (test_data$svm[i]=='Low'){
+    Low=Low+1
+  }
+  if (test_data$svm[i]=='Middle'){
+    Middle=Middle+1
+  }
+  if (test_data$svm[i]=='high'){
+    high=high+1
+  }
+  if (max(c(very_low, Low, Middle, high))==very_low) {
+    test_data$votclass[i]='very_low'
+  }
+  if (max(c(very_low, Low, Middle, high))==Low) {
+    test_data$votclass[i]='Low'
+  }
+  if (max(c(very_low, Low, Middle, high))==Middle) {
+    test_data$votclass[i]='Middle'
+  }
+  if (max(c(very_low, Low, Middle, high))==high) {
+    test_data$votclass[i]='high'
+  }
+}
+test_data$votclass = as.factor(test_data$votclass)
 
-pred_rf_prob<-predict(object = tree4,ind_vars,type='prob')
-pred_decision_prob<-predict(object = tree1,ind_vars,type='prob')
-pred_regtree_prob<-predict(object = tree2,ind_vars,type='prob')
+table = table(test_data$votclass, test_data$UNS)
 
-rf <- matrix(as.numeric(pred_rf_prob), nrow = 145, ncol = 4)
-dec <- matrix(unlist(pred_decision_prob), nrow = 145, ncol = 4)
-reg <- matrix(as.numeric(pred_regtree_prob), nrow = 145, ncol = 4)
-avg_prob<- (0.5*rf + 0.25*dec + 0.25*reg)/3
-avg_prob <- matrix(avg_prob, nrow=145)
-
-max_label <- apply(avg_prob,1,function(x) which(x==max(x)))
-levels=c("High","Low", "Middle", "very_low")
-names(levels) = c(1, 2, 3, 4)
-list_labels <- c(levels[max_label])
-
-table = table(list_labels, test_data$UNS)
-table
 
 n = sum(table) # number of instances
 nc = nrow(table) # number of classes
@@ -537,10 +616,11 @@ accuracy
 
 #Here is the performance metrics
 data.frame(precision, recall, f1)
-<<<<<<< HEAD
-table(res, test_data$UNS)
-=======
+table(test_data$votclass, test_data$UNS)
 
->>>>>>> 401d7fbcc506ac526c839672bba23bbf2495a461
+p <- plot_ly(test_data, x = ~PEG, y = ~LPR, z = ~SCG, color = ~votclass, colors = c("purple", "orange", "yellow", "green")) %>%
+add_markers() %>%
+layout(scene = list(xaxis = list(title = 'PEG'), yaxis = list(title = 'LPR'), zaxis = list(title = 'SCG')))
+p
+
 ```
-Here, we implemented a voting classifier that took a weighted average of the probabilities obtained by random forest, decision tree, and regression tree, our three most accurate methods. We weighted our best method, random forest, at 0.5, and the other 2 methods - decision tree and regression tree - at 0.25. The overall accuracy is 91.7%, which is actually less than the accuracy we got from the random forest method alone (94.4%) and only slightly more than the accuracies we got from decision tree or regression tree (91.03%). Indeed, upon trying several weight combinations, it is clear that the accuracy of the combined voting classifier increases as the weight given to the random forest method increases. In conclusion, stand-alone random forest seems to produce the best results on this user knowledge dataset; the Oliveira paper is in agreement with this conclusion. 
