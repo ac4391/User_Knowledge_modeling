@@ -29,6 +29,8 @@ library(C50) # Original C5.0 implementation.
 library(e1071) # naive bayes and SVM
 library(DMwR) # KNN
 library(plotly)
+library(xgboost)
+library(RSNNS)
 summary(training_data)
 attach(training_data)
 ```
@@ -429,7 +431,7 @@ The Kahraman paper's kNN classifier achieved an average % accuracy of ~85.5% usi
 
 ```{r}
 # SVM classification
-model <- svm( UNS~STG+SCG+STR+LPR+PEG, training_data )
+model <- svm( UNS~STG+SCG+STR+LPR+PEG, training_data, Gamma=0.069, cost=1000)
 res <- predict( model, test_data )
 table = table(res, test_data$UNS)
 summary(model)
@@ -465,7 +467,7 @@ layout(scene = list(xaxis = list(title = 'PEG'), yaxis = list(title = 'LPR'), za
 p
 ```
 
-Our SVM classifier achieved accuracy of 89.7%. 
+Our SVM classifier achieved accuracy of 91%. 
 
 
 Our random forest method performed best, followed by decision trees/regression trees/J48 trees, bagging and C5.0 decision trees, SVM, kNN, and naive bayes. Hence, overall, the tree-based methods performed better. The decision tree and random forest methods may be a better choice than SVM for this data for a few reasons: decision trees have better interpretability, they are considered to work/train faster, they are inherently suited to multiclass problems (whereas nonlinear kernel must be employed here if SVM is used). In addition, parameter tuning is generally needed to optimize the SVM classifier whereas it is easier to find a robust model using random forests method. Also, we end up with a lot of support vectors relative to the number of training data samples when using the SVM method - 184 support vectors in this case, on 258 training data samples. SVM is more highly recommended in (high-dimensional space) cases in which there are a large number of features but a smaller number of data points; in this case, we only have 5 features, so tree-based methods are a better choice. 
@@ -474,9 +476,48 @@ Random forest and decision tree methods are also preferable to kNN in the sense 
 
 Naive Bayes is considered to be faster than kNN at predction, but its results can be distorted by correlated features because it relies on marginal distributions of the features to do classification. In the case of the user knowledge data, there is likely correlation between different features like PEG and LPR as these are features of students, and this may partially resulted in lower accuracy using naive bayes.In addition, our R implementation of naive bayes had to assume that the features were normally distributed, which some of them were not according to our boxplots. 
 
+
+```{r}
+#MLP
+model <- mlp(STG+SCG+STR+LPR+PEG , UNS, size=c(5,1), maxit=500)
+mlp <- predict( model, test_data )
+table = table(mlp, test_data$UNS)
+summary(model)
+model
+
+
+n = sum(table) # number of instances
+nc = nrow(table) # number of classes
+diag = diag(table) # number of correctly classified instances per class 
+rowsums = apply(table, 1, sum) # number of instances per class
+colsums = apply(table, 2, sum) # number of predictions per class
+p = rowsums / n # distribution of instances over the actual classes
+q = colsums / n # distribution of instances over the predicted classes
+
+
+precision = diag / rowsums 
+recall = diag / colsums 
+f1 = 2 * precision * recall / (precision + recall)
+
+#The accuracy is:
+accuracy = sum(diag) / n
+accuracy
+
+#Here is the performance metrics
+data.frame(precision, recall, f1)
+table(mlp, test_data$UNS)
+
+test_data$mlp = mlp
+
+p <- plot_ly(test_data, x = ~PEG, y = ~LPR, z = ~SCG, color = ~, colors = c("purple", "orange", "yellow", "green")) %>%
+add_markers() %>%
+layout(scene = list(xaxis = list(title = 'PEG'), yaxis = list(title = 'LPR'), zaxis = list(title = 'SCG')))
+p
+```
+
 ```{r}
 #Voting classifier
-test_data$votclass = 'very low'
+test_data$votclass = 0
 
 for (i in 1:145){
   Low = 0
@@ -541,18 +582,6 @@ for (i in 1:145){
     Middle=Middle+1
   }
   if (test_data$C5.0[i]=='high'){
-    high=high+1
-  }
-  if (test_data$bayes[i]=='very_low'){
-    very_low=very_low+1
-  }
-  if (test_data$bayes[i]=='Low'){
-    Low=Low+1
-  }
-  if (test_data$bayes[i]=='Middle'){
-    Middle=Middle+1
-  }
-  if (test_data$bayes[i]=='high'){
     high=high+1
   }
   if (test_data$nn4[i]=='very_low'){
