@@ -476,9 +476,47 @@ Random forest and decision tree methods are also preferable to kNN in the sense 
 
 Naive Bayes is considered to be faster than kNN at predction, but its results can be distorted by correlated features because it relies on marginal distributions of the features to do classification. In the case of the user knowledge data, there is likely correlation between different features like PEG and LPR as these are features of students, and this may partially resulted in lower accuracy using naive bayes.In addition, our R implementation of naive bayes had to assume that the features were normally distributed, which some of them were not according to our boxplots. 
 
+```{r}
+#voting classifier that takes weighted average of probabilities from 3 models
+#tree4 is random forest model
+#tree1 is decision tree model
+#tree2 is regression tree model
+ind_vars <- subset(test_data, select = -UNS)
+pred_rf_prob<-predict(object = tree4,ind_vars,type='prob')
+pred_decision_prob<-predict(object = tree1,ind_vars,type='prob')
+pred_regtree_prob<-predict(object = tree2,ind_vars,type='prob')
+rf <- matrix(as.numeric(pred_rf_prob), nrow = 145, ncol = 4)
+dec <- matrix(unlist(pred_decision_prob), nrow = 145, ncol = 4)
+reg <- matrix(as.numeric(pred_regtree_prob), nrow = 145, ncol = 4)
+avg_prob<- (0.5*rf + 0.25*dec + 0.25*reg)/3
+avg_prob <- matrix(avg_prob, nrow=145)
+max_label <- apply(avg_prob,1,function(x) which(x==max(x)))
+levels=c("High","Low", "Middle", "very_low")
+names(levels) = c(1, 2, 3, 4)
+list_labels <- c(levels[max_label])
+table = table(list_labels, test_data$UNS)
+table
+n = sum(table) # number of instances
+nc = nrow(table) # number of classes
+diag = diag(table) # number of correctly classified instances per class 
+rowsums = apply(table, 1, sum) # number of instances per class
+colsums = apply(table, 2, sum) # number of predictions per class
+p = rowsums / n # distribution of instances over the actual classes
+q = colsums / n # distribution of instances over the predicted classes
+precision = diag / rowsums 
+recall = diag / colsums 
+f1 = 2 * precision * recall / (precision + recall)
+#The accuracy is:
+accuracy = sum(diag) / n
+accuracy
+#Here is the performance metrics
+data.frame(precision, recall, f1)
+```
+Here, we implemented a voting classifier that took a weighted average of the probabilities obtained by random forest, decision tree, and regression tree, our three most accurate methods. We weighted our best method, random forest, at 0.5, and the other 2 methods - decision tree and regression tree - at 0.25. The overall accuracy is 91.7%, which is actually less than the accuracy we got from the random forest method alone (94.4%) and only slightly more than the accuracies we got from decision tree or regression tree (91.03%). Indeed, upon trying several weight combinations, it is clear that the accuracy of the combined voting classifier increases as the weight given to the random forest method increases. In conclusion, stand-alone random forest seems to produce the best results on this user knowledge dataset; the Oliveira paper is in agreement with this conclusion. 
+
 
 ```{r}
-#Voting classifier
+#Alternative voting classifier
 test_data$votclass = 0
 
 for (i in 1:145){
