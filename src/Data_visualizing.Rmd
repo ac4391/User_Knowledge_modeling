@@ -29,8 +29,8 @@ library(C50) # Original C5.0 implementation.
 library(e1071) # naive bayes and SVM
 library(DMwR) # KNN
 library(plotly)
-library(xgboost)
-library(RSNNS)
+#library(xgboost)
+#library(RSNNS)
 summary(training_data)
 attach(training_data)
 ```
@@ -476,44 +476,6 @@ Random forest and decision tree methods are also preferable to kNN in the sense 
 
 Naive Bayes is considered to be faster than kNN at predction, but its results can be distorted by correlated features because it relies on marginal distributions of the features to do classification. In the case of the user knowledge data, there is likely correlation between different features like PEG and LPR as these are features of students, and this may partially resulted in lower accuracy using naive bayes.In addition, our R implementation of naive bayes had to assume that the features were normally distributed, which some of them were not according to our boxplots. 
 
-
-```{r}
-#MLP
-model <- mlp(STG+SCG+STR+LPR+PEG , UNS, size=c(5,1), maxit=500)
-mlp <- predict( model, test_data )
-table = table(mlp, test_data$UNS)
-summary(model)
-model
-
-
-n = sum(table) # number of instances
-nc = nrow(table) # number of classes
-diag = diag(table) # number of correctly classified instances per class 
-rowsums = apply(table, 1, sum) # number of instances per class
-colsums = apply(table, 2, sum) # number of predictions per class
-p = rowsums / n # distribution of instances over the actual classes
-q = colsums / n # distribution of instances over the predicted classes
-
-
-precision = diag / rowsums 
-recall = diag / colsums 
-f1 = 2 * precision * recall / (precision + recall)
-
-#The accuracy is:
-accuracy = sum(diag) / n
-accuracy
-
-#Here is the performance metrics
-data.frame(precision, recall, f1)
-table(mlp, test_data$UNS)
-
-test_data$mlp = mlp
-
-p <- plot_ly(test_data, x = ~PEG, y = ~LPR, z = ~SCG, color = ~, colors = c("purple", "orange", "yellow", "green")) %>%
-add_markers() %>%
-layout(scene = list(xaxis = list(title = 'PEG'), yaxis = list(title = 'LPR'), zaxis = list(title = 'SCG')))
-p
-```
 
 ```{r}
 #Voting classifier
